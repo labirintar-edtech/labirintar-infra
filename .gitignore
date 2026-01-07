@@ -1,0 +1,33 @@
+# Environment variables
+.env
+.env.local
+
+# Docker volumes data (optional - uncomment if you don't want to track local data)
+# caddy_data/
+# caddy_config/
+# wp_data/
+# db_data/
+
+# Caddy configuration backups
+conf/*.backup
+conf/*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

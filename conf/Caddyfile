@@ -1,0 +1,123 @@
+# Caddyfile - Configuração do Caddy Server
+# Domínio: blog.labirintar.com.br
+
+# Redireciona www para não-www
+www.blog.labirintar.com.br {
+    redir https://blog.labirintar.com.br{uri} permanent
+}
+
+# Configuração principal do WordPress
+blog.labirintar.com.br {
+    # Habilita HTTPS automático com Let's Encrypt
+    # Caddy gerencia automaticamente os certificados SSL
+    
+    # Configurações de encoding
+    encode gzip zstd
+
+    # Logs
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+
+    # Reverse proxy para o WordPress
+    reverse_proxy wordpress:80 {
+        # Headers de segurança
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        
+        # Timeouts
+        transport http {
+            dial_timeout 10s
+            response_header_timeout 30s
+        }
+    }
+
+    # Headers de segurança
+    header {
+        # Previne clickjacking
+        X-Frame-Options "SAMEORIGIN"
+        
+        # Previne MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        
+        # Habilita proteção XSS no navegador
+        X-XSS-Protection "1; mode=block"
+        
+        # Política de referrer
+        Referrer-Policy "strict-origin-when-cross-origin"
+        
+        # Remove header Server
+        -Server
+        
+        # Content Security Policy (ajuste conforme necessário)
+        # Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;"
+    }
+
+    # Limites de tamanho de upload (ajuste conforme necessário)
+    request_body {
+        max_size 100MB
+    }
+
+    # Cache de arquivos estáticos
+    @static {
+        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # Bloqueia acesso a arquivos sensíveis do WordPress
+    @blocked {
+        path *.sql *.zip *.tar *.gz *.bak *wp-config.php* *.log
+        path */xmlrpc.php
+        path */.git/* */.svn/* */.env
+    }
+    respond @blocked 403
+
+    # Health check endpoint
+    handle /health {
+        respond "OK" 200
+    }
+}
+
+# Uptime Kuma - Monitoramento
+status.labirintar.com.br {
+    # Habilita HTTPS automático
+    encode gzip zstd
+
+    # Logs
+    log {
+        output file /var/log/caddy/status-access.log
+        format json
+    }
+
+    # Reverse proxy para Uptime Kuma
+    reverse_proxy uptime-kuma:3001 {
+        # Headers WebSocket
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        
+        # Suporte a WebSocket (necessário para Uptime Kuma)
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
+    }
+
+    # Headers de segurança
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}
+
+# Configuração para desenvolvimento local (opcional)
+# Descomente se quiser testar localmente sem domínio
+# localhost, 127.0.0.1 {
+#     reverse_proxy wordpress:80
+# }
+
