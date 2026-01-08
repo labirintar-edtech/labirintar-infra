@@ -1,10 +1,17 @@
 # Caddyfile - Configuração do Caddy Server
 
-# Domínio: labirintar.com.br
+# Redirecionamentos
 
 www.labirintar.com.br {
     redir https://labirintar.com.br{uri} permanent
 }
+
+# Redireciona subdomínio blog para subpath /blog
+blog.labirintar.com.br {
+    redir https://labirintar.com.br/blog{uri} permanent
+}
+
+# Domínio: labirintar.com.br
 
 labirintar.com.br {
     root * /var/www/sites/labirintar
