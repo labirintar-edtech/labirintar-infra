@@ -15,124 +15,41 @@ labirintar.com.br {
         format json
     }
 
-    try_files {path} /index.html
-
-    file_server
-
-    @static {
-        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
-    }
-    header @static Cache-Control "public, max-age=31536000, immutable"
-
-    header {
-        X-Frame-Options "SAMEORIGIN"
-        X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -Server
-    }
-}
-
-# Domínio: new.labirintar.com.br
-
-www.new.labirintar.com.br {
-    redir https://labirintar.com.br{uri} permanent
-}
-
-new.labirintar.com.br {
-    root * /var/www/sites/new-labirintar
-    encode gzip zstd
-
-    log {
-        output file /var/log/caddy/new-labirintar-access.log
-        format json
-    }
-
-    try_files {path} /index.html
-
-    file_server
-
-    @static {
-        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
-    }
-    header @static Cache-Control "public, max-age=31536000, immutable"
-
-    header {
-        X-Frame-Options "SAMEORIGIN"
-        X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -Server
-    }
-}
-
-# Domínio: blog.labirintar.com.br
-
-# Redireciona www para não-www
-www.blog.labirintar.com.br {
-    redir https://blog.labirintar.com.br{uri} permanent
-}
-
-# Configuração principal do WordPress
-blog.labirintar.com.br {
-    # Habilita HTTPS automático com Let's Encrypt
-    # Caddy gerencia automaticamente os certificados SSL
-    
-    # Configurações de encoding
-    encode gzip zstd
-
-    # Logs
-    log {
-        output file /var/log/caddy/access.log
-        format json
-    }
-
-    # Reverse proxy para o WordPress
-    reverse_proxy wordpress:80 {
-        # Headers de segurança
-        header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
-        header_up X-Forwarded-Host {host}
-        
-        # Timeouts
-        transport http {
-            dial_timeout 10s
-            response_header_timeout 30s
+    # WordPress no subpath /blog
+    handle /blog* {
+        reverse_proxy wordpress:80 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+            
+            transport http {
+                dial_timeout 10s
+                response_header_timeout 30s
+            }
         }
     }
 
-    # Headers de segurança
+    # Site estático simples (HTML puro, sem SPA)
+    file_server
+
+    @static {
+        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
     header {
-        # Previne clickjacking
         X-Frame-Options "SAMEORIGIN"
-        
-        # Previne MIME type sniffing
         X-Content-Type-Options "nosniff"
-        
-        # Habilita proteção XSS no navegador
         X-XSS-Protection "1; mode=block"
-        
-        # Política de referrer
         Referrer-Policy "strict-origin-when-cross-origin"
-        
-        # Remove header Server
         -Server
-        
-        # Content Security Policy (ajuste conforme necessário)
-        # Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;"
     }
 
-    # Limites de tamanho de upload (ajuste conforme necessário)
+    # Limites de tamanho de upload para WordPress
     request_body {
         max_size 100MB
     }
-
-    # Cache de arquivos estáticos
-    @static {
-        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp
-    }
-    header @static Cache-Control "public, max-age=31536000, immutable"
 
     # Bloqueia acesso a arquivos sensíveis do WordPress
     @blocked {
@@ -147,6 +64,39 @@ blog.labirintar.com.br {
         respond "OK" 200
     }
 }
+
+# Domínio: new.labirintar.com.br
+
+www.new.labirintar.com.br {
+    redir https://new.labirintar.com.br{uri} permanent
+}
+
+new.labirintar.com.br {
+    root * /var/www/sites/new-labirintar
+    encode gzip zstd
+
+    log {
+        output file /var/log/caddy/new-labirintar-access.log
+        format json
+    }
+
+    # Site estático simples (HTML puro, sem SPA)
+    file_server
+
+    @static {
+        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}
+
 
 # Uptime Kuma - Monitoramento
 status.labirintar.com.br {
