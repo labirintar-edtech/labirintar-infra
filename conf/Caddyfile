@@ -23,12 +23,13 @@ labirintar.com.br {
     }
 
     # WordPress no subpath /blog
-    handle /blog* {
+    handle_path /blog* {
         reverse_proxy wordpress:80 {
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
             header_up X-Forwarded-Proto {scheme}
             header_up X-Forwarded-Host {host}
+            header_up X-Forwarded-Prefix /blog
             
             transport http {
                 dial_timeout 10s
