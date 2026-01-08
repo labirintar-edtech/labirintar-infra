@@ -1,4 +1,71 @@
 # Caddyfile - Configuração do Caddy Server
+
+# Domínio: labirintar.com.br
+
+www.labirintar.com.br {
+    redir https://labirintar.com.br{uri} permanent
+}
+
+labirintar.com.br {
+    root * /var/www/sites/labirintar
+    encode gzip zstd
+
+    log {
+        output file /var/log/caddy/labirintar-access.log
+        format json
+    }
+
+    try_files {path} /index.html
+
+    file_server
+
+    @static {
+        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}
+
+# Domínio: new.labirintar.com.br
+
+www.new.labirintar.com.br {
+    redir https://labirintar.com.br{uri} permanent
+}
+
+new.labirintar.com.br {
+    root * /var/www/sites/new-labirintar
+    encode gzip zstd
+
+    log {
+        output file /var/log/caddy/new-labirintar-access.log
+        format json
+    }
+
+    try_files {path} /index.html
+
+    file_server
+
+    @static {
+        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}
+
 # Domínio: blog.labirintar.com.br
 
 # Redireciona www para não-www
@@ -114,6 +181,59 @@ status.labirintar.com.br {
         -Server
     }
 }
+
+# ============================================
+# SITES ESTÁTICOS (React, Vue, Angular, etc)
+# ============================================
+
+# Exemplo: Site React/SPA
+# Descomente e ajuste conforme necessário
+# app.labirintar.com.br {
+#     root * /var/www/sites/app
+#     encode gzip zstd
+#     
+#     # Logs
+#     log {
+#         output file /var/log/caddy/app-access.log
+#         format json
+#     }
+#     
+#     # SPA: redireciona todas as rotas para index.html
+#     try_files {path} /index.html
+#     
+#     # Serve arquivos
+#     file_server
+#     
+#     # Cache de assets estáticos
+#     @static {
+#         path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
+#     }
+#     header @static Cache-Control "public, max-age=31536000, immutable"
+#     
+#     # Headers de segurança
+#     header {
+#         X-Frame-Options "SAMEORIGIN"
+#         X-Content-Type-Options "nosniff"
+#         X-XSS-Protection "1; mode=block"
+#         Referrer-Policy "strict-origin-when-cross-origin"
+#         -Server
+#     }
+# }
+
+# Exemplo: Site com API proxy
+# landing.labirintar.com.br {
+#     root * /var/www/sites/landing
+#     encode gzip zstd
+#     
+#     # Proxy para API backend
+#     handle /api/* {
+#         reverse_proxy backend:3000
+#     }
+#     
+#     # Serve arquivos estáticos
+#     file_server
+#     try_files {path} /index.html
+# }
 
 # Configuração para desenvolvimento local (opcional)
 # Descomente se quiser testar localmente sem domínio

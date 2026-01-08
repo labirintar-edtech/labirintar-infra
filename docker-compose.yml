@@ -11,6 +11,7 @@ services:
       - ./conf:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
+      - ./sites:/var/www/sites
     networks:
       - web
     healthcheck:
