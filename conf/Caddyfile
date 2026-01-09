@@ -17,6 +17,11 @@ labirintar.com.br {
         format json
     }
 
+    # Redireciona /blog para subdomínio
+    handle /blog* {
+        redir https://blog.labirintar.com.br{uri} permanent
+    }
+
     # Site estático simples (HTML puro, sem SPA)
     file_server
     
