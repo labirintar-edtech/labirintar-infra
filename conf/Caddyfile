@@ -18,7 +18,7 @@ labirintar.com.br {
     }
 
     # Redireciona /blog para subdomínio
-    handle /blog* {
+    handle_path /blog* {
         redir https://blog.labirintar.com.br{uri} permanent
     }
 
