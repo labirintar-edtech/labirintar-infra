@@ -43,14 +43,10 @@ if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROT
     $_SERVER['HTTPS'] = 'on';
 }
 
-// Corrige redirecionamentos em subpath (IMPORTANTE!)
-if (!empty($_SERVER['HTTP_X_SCRIPT_NAME'])) {
-    $_SERVER['PHP_SELF'] = $_SERVER['HTTP_X_SCRIPT_NAME'] . $_SERVER['PHP_SELF'];
-    $_SERVER['REQUEST_URI'] = $_SERVER['HTTP_X_SCRIPT_NAME'] . $_SERVER['REQUEST_URI'];
-}
-
 // Resto do arquivo wp-config.php continua aqui...
 ```
+
+**⚠️ IMPORTANTE:** NÃO adicione código que modifica `REQUEST_URI` ou `PHP_SELF` - isso causa loop de redirecionamento!
 
 #### Passo 5: Salve e saia
 
