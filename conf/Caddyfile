@@ -6,12 +6,7 @@ www.labirintar.com.br {
     redir https://labirintar.com.br{uri} permanent
 }
 
-# Redireciona subdomínio blog para subpath /blog
-blog.labirintar.com.br {
-    redir https://labirintar.com.br/blog{uri} permanent
-}
-
-# Domínio: labirintar.com.br
+# Domínio: labirintar.com.br (Site principal)
 
 labirintar.com.br {
     root * /var/www/sites/labirintar
@@ -20,21 +15,6 @@ labirintar.com.br {
     log {
         output file /var/log/caddy/labirintar-access.log
         format json
-    }
-
-    # WordPress no subpath /blog
-    handle_path /blog* {
-        reverse_proxy wordpress:80 {
-            header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-For {remote_host}
-            header_up X-Forwarded-Proto {scheme}
-            header_up X-Forwarded-Host {host}
-            
-            transport http {
-                dial_timeout 10s
-                response_header_timeout 30s
-            }
-        }
     }
 
     # Site estático simples (HTML puro, sem SPA)
@@ -73,6 +53,67 @@ labirintar.com.br {
     respond @blocked 403
 
     # Health check endpoint
+    handle /health {
+        respond "OK" 200
+    }
+}
+
+# Domínio: blog.labirintar.com.br (WordPress)
+
+www.blog.labirintar.com.br {
+    redir https://blog.labirintar.com.br{uri} permanent
+}
+
+blog.labirintar.com.br {
+    encode gzip zstd
+
+    log {
+        output file /var/log/caddy/blog-access.log
+        format json
+    }
+
+    # Reverse proxy para WordPress
+    reverse_proxy wordpress:80 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        
+        transport http {
+            dial_timeout 10s
+            response_header_timeout 30s
+        }
+    }
+
+    # Headers de segurança
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Limites de tamanho de upload
+    request_body {
+        max_size 100MB
+    }
+
+    # Cache de arquivos estáticos
+    @static {
+        path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # Bloqueia acesso a arquivos sensíveis
+    @blocked {
+        path *.sql *.zip *.tar *.gz *.bak *wp-config.php* *.log
+        path */xmlrpc.php
+        path */.git/* */.svn/* */.env
+    }
+    respond @blocked 403
+
+    # Health check
     handle /health {
         respond "OK" 200
     }
