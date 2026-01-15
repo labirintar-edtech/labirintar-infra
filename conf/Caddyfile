@@ -22,6 +22,14 @@ labirintar.com.br {
         redir https://blog.labirintar.com.br{uri} permanent
     }
 
+    # SPA: Percurso Educativo
+    handle /percurso-educativo* {
+        root * /var/www/sites/percurso-educativo/dist
+        uri strip_prefix /percurso-educativo
+        try_files {path} /index.html
+        file_server
+    }
+
     # Site estático simples (HTML puro, sem SPA)
     file_server
     
