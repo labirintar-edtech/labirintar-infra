@@ -10,6 +10,8 @@ www.labirintar.com.br {
 # TEMPORÁRIO: Redirecionando para Wix
 
 labirintar.com.br {
+    encode gzip zstd
+    
     log {
         output file /var/log/caddy/labirintar-access.log
         format json
@@ -20,13 +22,18 @@ labirintar.com.br {
         redir https://blog.labirintar.com.br{uri} permanent
     }
 
-    # Redireciona /percurso-educativo para subdomínio (mantém funcionando)
+    # Redireciona /percurso-educativo (mantém funcionando se já estiver deployado)
     handle /percurso-educativo* {
-        redir https://blog.labirintar.com.br/percurso-educativo{uri} temporary
+        root * /var/www/sites/percurso-educativo/dist
+        uri strip_prefix /percurso-educativo
+        try_files {path} /index.html
+        file_server
     }
 
-    # Redireciona TUDO para o Wix (temporário)
-    redir https://operacao435.wixsite.com/labirintar temporary
+    # Redireciona TUDO MAIS para o Wix (temporário)
+    handle {
+        redir https://operacao435.wixsite.com/labirintar temporary
+    }
 }
 
     @static {
