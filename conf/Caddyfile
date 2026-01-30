@@ -7,37 +7,27 @@ www.labirintar.com.br {
 }
 
 # Domínio: labirintar.com.br (Site principal)
+# TEMPORÁRIO: Redirecionando para Wix
 
 labirintar.com.br {
-    root * /var/www/sites/labirintar
-    encode gzip zstd
-
     log {
         output file /var/log/caddy/labirintar-access.log
         format json
     }
 
-    # Redireciona /blog para subdomínio
-    handle_path /blog* {
+    # Redireciona /blog para subdomínio (mantém funcionando)
+    handle /blog* {
         redir https://blog.labirintar.com.br{uri} permanent
     }
 
-    # SPA: Percurso Educativo
+    # Redireciona /percurso-educativo para subdomínio (mantém funcionando)
     handle /percurso-educativo* {
-        root * /var/www/sites/percurso-educativo/dist
-        uri strip_prefix /percurso-educativo
-        try_files {path} /index.html
-        file_server
+        redir https://blog.labirintar.com.br/percurso-educativo{uri} temporary
     }
 
-    # Site estático simples (HTML puro, sem SPA)
-    file_server
-    
-    # Redireciona 404 para home
-    handle_errors {
-        @404 expression {http.error.status_code} == 404
-        redir @404 / temporary
-    }
+    # Redireciona TUDO para o Wix (temporário)
+    redir https://operacao435.wixsite.com/labirintar temporary
+}
 
     @static {
         path *.css *.js *.ico *.gif *.jpg *.jpeg *.png *.svg *.woff *.woff2 *.ttf *.eot *.webp *.json
